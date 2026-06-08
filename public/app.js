@@ -498,8 +498,11 @@ auditForm.addEventListener("submit", async (e) => {
     if (seatFile) formData.append("image_seat", seatFile);
     
     try {
-        // CALL Python FastAPI Backend running on port 8000 cross-origin
-        const response = await fetch("http://127.0.0.1:8000/api/v1/verify-vehicle", {
+        // CALL Python FastAPI Backend (dynamically resolve API host)
+        const apiHost = window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost"
+            ? "http://127.0.0.1:8000"
+            : window.location.origin;
+        const response = await fetch(`${apiHost}/api/v1/verify-vehicle`, {
             method: "POST",
             body: formData
         });
