@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OdoShield 3D - AI Used Car Odometer Fraud Auditor</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Three.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- html2pdf.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- CSS Stylesheet -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Interactive 3D Canvas Background -->
+    <canvas id="three-canvas"></canvas>
+    
+    <div class="cyber-grid-overlay"></div>
+
+    <div class="main-wrapper">
+        <!-- Dashboard Header -->
+        <header class="app-header">
+            <div class="header-hud">
+                <span class="hud-stat">SYS_STATUS: <span class="text-glow-cyan animate-pulse">ACTIVE</span></span>
+                <span class="hud-stat">CORE_TEMP: <span class="text-glow-cyan">38.4°C</span></span>
+                <span class="hud-stat font-mono">LATENCY: <span id="hudLatency">12ms</span></span>
+                <button id="themeToggleBtn" class="hud-stat" style="cursor: pointer; font-weight: bold; border: 1px solid var(--border-cyber); outline: none; background: rgba(0, 229, 255, 0.05); color: var(--color-cyan);">THEME: DARK</button>
+                <div class="hud-stat device-switcher" style="display: flex; gap: 0.5rem; align-items: center; border: 1px solid var(--border-cyber); background: rgba(0, 229, 255, 0.05); padding: 0.15rem 0.5rem; border-radius: 4px;">
+                    <span style="font-size: 0.7rem; color: var(--color-cyan);">VIEW:</span>
+                    <button id="viewLaptopBtn" class="device-btn active" style="background: transparent; border: none; cursor: pointer; color: var(--color-cyan); font-size: 0.85rem; outline: none; padding: 0;" title="Laptop View">💻</button>
+                    <button id="viewMobileBtn" class="device-btn" style="background: transparent; border: none; cursor: pointer; color: #9ca3af; font-size: 0.85rem; outline: none; padding: 0;" title="Mobile View">📱</button>
+                </div>
+            </div>
+            
+            <div class="logo-wrapper">
+                <div class="glow-ring"></div>
+                <div class="shield-3d-icon">
+                    <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                        <path d="M12 8v8M9 11h6" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <h1 class="glitch-title" data-text="OdoShield 3D">OdoShield 3D</h1>
+            </div>
+            <p class="tagline">Holographic Used Car Odometer & Electronic Integrity Auditor</p>
+        </header>
+
+        <!-- Simulation Presets Bar -->
+        <section class="presets-section">
+            <div class="presets-header">
+                <span class="pulse-dot"></span>
+                <h3>Auditor Simulation Scenarios (One-Click Testing)</h3>
+            </div>
+            <div class="presets-buttons-grid">
+                <button class="preset-btn" onclick="injectPreset('clean')">
+                    <span class="btn-indicator success"></span>
+                    <span class="btn-preset-title">Legitimate Vehicle</span>
+                    <span class="btn-preset-desc">Clean odometer history & low wear</span>
+                </button>
+                <button class="preset-btn" onclick="injectPreset('ecu-swap')">
+                    <span class="btn-indicator info"></span>
+                    <span class="btn-preset-title">Benign ECU Replacement</span>
+                    <span class="btn-preset-desc">ABS module mismatch, isolated outlier</span>
+                </button>
+                <button class="preset-btn" onclick="injectPreset('ecu-rollback')">
+                    <span class="btn-indicator danger"></span>
+                    <span class="btn-preset-title">Electronic Rollback</span>
+                    <span class="btn-preset-desc">Cluster rolled back, ECM discrepancy</span>
+                </button>
+                <button class="preset-btn" onclick="injectPreset('wear-mismatch')">
+                    <span class="btn-indicator warning"></span>
+                    <span class="btn-preset-title">Cosmetic Fraud (Wear Mismatch)</span>
+                    <span class="btn-preset-desc">Low mileage but high physical wear</span>
+                </button>
+            </div>
+        </section>
+
+        <div class="app-grid-container">
+            <!-- Left Side: Interactive Input Console -->
+            <section class="tilt-card form-card">
+                <div class="card-glow"></div>
+                <div class="card-header-3d">
+                    <h2>Forensic Inspection Node</h2>
+                    <p class="font-mono text-glow-cyan text-xs">INPUT_REGISTER // VEHICLE_TELEMETRY</p>
+                </div>
+                
+                <form id="auditForm">
+                    <div class="input-glow-wrapper">
+                        <label for="vin">Vehicle Identification Number (VIN)</label>
+                        <input type="text" id="vin" placeholder="ENTER 17-DIGIT VIN" minlength="17" maxlength="17" required>
+                        <div class="input-border-glow"></div>
+                    </div>
+
+                    <div class="row-grid">
+                        <div class="input-glow-wrapper">
+                            <label for="current_odometer">Reported Odometer (km)</label>
+                            <input type="number" id="current_odometer" placeholder="ODOMETER READING" min="0" required>
+                            <div class="input-border-glow"></div>
+                        </div>
+                        <div class="input-glow-wrapper">
+                            <label for="engine_hours">Engine Hours</label>
+                            <input type="number" id="engine_hours" placeholder="ENGINE HOURS" min="0" step="0.1" value="1500">
+                            <div class="input-border-glow"></div>
+                        </div>
+                    </div>
+
+                    <div class="row-grid">
+                        <div class="input-glow-wrapper">
+                            <label for="asking_price">Seller Asking Price (₹)</label>
+                            <input type="number" id="asking_price" placeholder="e.g. 600000" min="0">
+                            <div class="input-border-glow"></div>
+                        </div>
+                        <div class="input-glow-wrapper">
+                            <label for="paint_thickness">Paint Thickness (mils)</label>
+                            <input type="number" id="paint_thickness" placeholder="e.g. 5.0" min="0" step="0.1" value="5.0">
+                            <div class="input-border-glow"></div>
+                        </div>
+                    </div>
+
+                    <div class="row-grid">
+                        <div class="input-glow-wrapper">
+                            <label for="dents_scratches">Dents & Scratches</label>
+                            <select id="dents_scratches" class="cyber-select">
+                                <option value="None">None (Mint Condition)</option>
+                                <option value="Mild" selected>Mild (Small chips/scratches)</option>
+                                <option value="Moderate">Moderate (Dents on panels)</option>
+                                <option value="Severe">Severe (Body structural damage)</option>
+                            </select>
+                            <div class="input-border-glow"></div>
+                        </div>
+                        <div class="input-glow-wrapper">
+                            <label for="car_color">Vehicle Color</label>
+                            <input type="text" id="car_color" placeholder="e.g. White" value="White">
+                            <div class="input-border-glow"></div>
+                        </div>
+                    </div>
+
+                    <!-- Expandable ECU Diagnostics -->
+                    <details class="cyber-details">
+                        <summary>Holographic CAN Bus Registers (Overrides)</summary>
+                        <div class="details-grid">
+                            <div class="input-glow-wrapper">
+                                <label for="ecu_cluster">Cluster (km)</label>
+                                <input type="number" id="ecu_cluster" placeholder="Auto">
+                            </div>
+                            <div class="input-glow-wrapper">
+                                <label for="ecu_ecm">ECM (km)</label>
+                                <input type="number" id="ecu_ecm" placeholder="Auto">
+                            </div>
+                            <div class="input-glow-wrapper">
+                                <label for="ecu_tcm">TCM (km)</label>
+                                <input type="number" id="ecu_tcm" placeholder="Auto">
+                            </div>
+                            <div class="input-glow-wrapper">
+                                <label for="ecu_abs">ABS (km)</label>
+                                <input type="number" id="ecu_abs" placeholder="Auto">
+                            </div>
+                            <div class="input-glow-wrapper">
+                                <label for="ecu_airbag">Airbag (km)</label>
+                                <input type="number" id="ecu_airbag" placeholder="Auto">
+                            </div>
+                        </div>
+                    </details>
+
+                    <!-- Image Upload Section -->
+                    <div class="wear-upload-hud">
+                        <h3>Interior Optical Telemetry (Layer 4 CNN)</h3>
+                        <p class="section-desc">Submit close-ups or proceed with simulated wear templates.</p>
+                        
+                        <div class="glow-dropzones">
+                            <div class="cyber-dropzone" id="dzPedal">
+                                <input type="file" id="image_pedal" accept="image/*" class="file-input">
+                                <div class="dz-hud-overlay"></div>
+                                <div class="dz-content">
+                                    <span class="dz-icon">Pedal</span>
+                                    <span class="dz-sub">Drag & Drop Image</span>
+                                </div>
+                                <div class="dz-preview"></div>
+                                <div class="dz-scanline"></div>
+                            </div>
+
+                            <div class="cyber-dropzone" id="dzSteering">
+                                <input type="file" id="image_steering" accept="image/*" class="file-input">
+                                <div class="dz-hud-overlay"></div>
+                                <div class="dz-content">
+                                    <span class="dz-icon">Steering</span>
+                                    <span class="dz-sub">Drag & Drop Image</span>
+                                </div>
+                                <div class="dz-preview"></div>
+                                <div class="dz-scanline"></div>
+                            </div>
+
+                            <div class="cyber-dropzone" id="dzSeat">
+                                <input type="file" id="image_seat" accept="image/*" class="file-input">
+                                <div class="dz-hud-overlay"></div>
+                                <div class="dz-content">
+                                    <span class="dz-icon">Seat</span>
+                                    <span class="dz-sub">Drag & Drop Image</span>
+                                </div>
+                                <div class="dz-preview"></div>
+                                <div class="dz-scanline"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Glowing Audit Button -->
+                    <button type="submit" id="submitBtn" class="cyber-btn">
+                        <span class="btn-bg"></span>
+                        <span class="btn-border"></span>
+                        <span class="btn-text">INITIALIZE 6-LAYER FORENSIC AUDIT</span>
+                        <span class="spinner hidden"></span>
+                    </button>
+                </form>
+            </section>
+
+            <!-- Loading Panel -->
+            <section id="diagnosticsPanel" class="tilt-card console-card hidden">
+                <div class="card-glow"></div>
+                <div class="card-header-3d">
+                    <h2>Auditing Diagnostic Feeds...</h2>
+                    <p class="font-mono text-glow-cyan text-xs">CAN_BUS_DECRYPTOR // STREAMING</p>
+                </div>
+                
+                <!-- Clean Status Loader -->
+                <div class="cyber-loader-container" id="diagnosticsLoader">
+                    <div class="cyber-loader-ring"></div>
+                    <h3 id="diagnosticsStatus" class="font-mono text-glow-cyan text-sm text-center animate-pulse" style="margin: 0; letter-spacing: 0.1em; font-size: 0.85rem;">INITIALIZING INTEGRITY AUDIT...</h3>
+                </div>
+
+                <!-- Hidden Console Terminal (unhidden on failure) -->
+                <div class="cyber-terminal" id="diagnosticsConsole" style="display: none;">
+                    <div class="terminal-hud-header">
+                        <div class="header-dots">
+                            <span></span><span></span><span></span>
+                        </div>
+                        <span class="font-mono text-xs">INTEGRITY_AUDIT_CONSOLE_STREAM</span>
+                    </div>
+                    <div class="terminal-scroller" id="terminalLog">
+                        <!-- Stream logs dynamically injected -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Audit Results View (Hidden Initially) -->
+            <section id="resultsSection" class="results-layout hidden">
+                
+                <!-- Circular Indicator Column -->
+                <div class="tilt-card risk-sidebar-card">
+                    <div class="card-glow"></div>
+                    <div class="badge-status-row">
+                        <span id="riskLevelBadge" class="status-cyber-badge">HIGH RISK</span>
+                        <span id="recommendationBadge" class="status-cyber-rec">REJECT</span>
+                    </div>
+
+                    <div class="vehicle-details-card">
+                        <h3 id="resVehicleTitle" class="font-heading">2018 Honda City</h3>
+                        <div class="vin-hud-label">VIN: <code id="resVin">MA3ERLF3800123456</code></div>
+                        <div class="details-hud-list">
+                            <div>Location: <span id="resCity" class="text-glow-cyan">Delhi</span></div>
+                            <div>Odometer: <span id="resOdo" class="text-glow-cyan">45,000 km</span></div>
+                        </div>
+                    </div>
+                    <!-- Market Worth Valuation Widget -->
+                    <div class="valuation-hud-card" id="valuationCard" style="display: none; background: rgba(0, 229, 255, 0.02); border: 1px solid rgba(0, 229, 255, 0.1); border-radius: 10px; padding: 1rem; margin: 1rem 0; text-align: left;">
+                        <h4 style="font-family: var(--font-cyber); font-size: 0.75rem; color: #fff; text-transform: uppercase; border-bottom: 1px solid rgba(0, 229, 255, 0.1); padding-bottom: 0.25rem; margin-bottom: 0.5rem; letter-spacing: 0.05em;">Market Worth Valuation</h4>
+                        <div style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 0.25rem; color: #9ca3af;">
+                            <span>Asking Price:</span>
+                            <span id="valAskingPrice" style="font-family: var(--font-cyber); font-weight: bold; color: #fff;">-</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 0.25rem; color: #9ca3af;">
+                            <span>OdoShield Fair Worth:</span>
+                            <span id="valActualWorth" style="font-family: var(--font-cyber); font-weight: bold; color: var(--color-cyan);">-</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 0.25rem; color: #9ca3af;">
+                            <span>Deviation:</span>
+                            <span id="valDeviation" style="font-family: var(--font-cyber); font-weight: bold;">-</span>
+                        </div>
+                        <div style="text-align: center; font-family: var(--font-cyber); font-size: 0.7rem; font-weight: 900; letter-spacing: 0.1em; padding: 0.3rem; border-radius: 4px;" id="valStatusBadge">-</div>
+                    </div>
+
+                    <!-- Insurance Registry Widget -->
+                    <div class="valuation-hud-card" id="insuranceCard" style="display: none; background: rgba(0, 229, 255, 0.02); border: 1px solid rgba(0, 229, 255, 0.1); border-radius: 10px; padding: 1rem; margin: 1rem 0; text-align: left;">
+                        <h4 style="font-family: var(--font-cyber); font-size: 0.75rem; color: #fff; text-transform: uppercase; border-bottom: 1px solid rgba(0, 229, 255, 0.1); padding-bottom: 0.25rem; margin-bottom: 0.5rem; letter-spacing: 0.05em;">Layer 7: Insurance Status</h4>
+                        <div style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 0.25rem; color: #9ca3af;">
+                            <span>Insurer:</span>
+                            <span id="insCompany" style="font-weight: bold; color: #fff;">-</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 0.25rem; color: #9ca3af;">
+                            <span>Policy Number:</span>
+                            <span id="insPolicyNo" style="font-family: monospace; color: #fff;">-</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 0.25rem; color: #9ca3af;">
+                            <span>Expiry Date:</span>
+                            <span id="insExpiry" style="font-weight: bold;">-</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 0.25rem; color: #9ca3af;">
+                            <span>Claims Count:</span>
+                            <span id="insClaims" style="font-weight: bold;">-</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 0.5rem; color: #9ca3af;">
+                            <span>No Claim Bonus:</span>
+                            <span id="insNcb" style="font-weight: bold; color: var(--color-cyan);">-</span>
+                        </div>
+                        <div style="text-align: center; font-family: var(--font-cyber); font-size: 0.7rem; font-weight: 900; letter-spacing: 0.1em; padding: 0.3rem; border-radius: 4px;" id="insStatusBadge">-</div>
+                    </div>
+
+                    <!-- 3D SVG Gauge Progress -->
+                    <div class="hologram-gauge-container">
+                        <svg class="hologram-circle-svg" width="220" height="220">
+                            <defs>
+                                <radialGradient id="cyanGlow" cx="50%" cy="50%" r="50%">
+                                    <stop offset="0%" stop-color="rgba(0, 229, 255, 0.1)"/>
+                                    <stop offset="100%" stop-color="rgba(0, 229, 255, 0)"/>
+                                </radialGradient>
+                                <linearGradient id="hologramGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="var(--color-cyan)"/>
+                                    <stop offset="100%" stop-color="var(--color-purple)"/>
+                                </linearGradient>
+                            </defs>
+                            <circle class="hologram-circle-bg" stroke="rgba(255,255,255,0.03)" stroke-width="14" fill="url(#cyanGlow)" r="88" cx="110" cy="110"/>
+                            <circle class="hologram-circle-fill" id="gaugeCircle" stroke="url(#hologramGradient)" stroke-width="14" fill="transparent" r="88" cx="110" cy="110"/>
+                        </svg>
+                        <div class="gauge-center-text">
+                            <span class="gauge-percentage" id="resProbability">0%</span>
+                            <span class="gauge-label font-mono">FRAUD PROBABILITY</span>
+                        </div>
+                    </div>
+
+                    <!-- Audit Layers Score bars -->
+                    <div class="hud-scores-list">
+                        <h4>Audit Layers Sub-Weights</h4>
+                        <div class="hud-score-item">
+                            <span class="hud-score-lbl">VAHAN History (30%)</span>
+                            <div class="hud-progress-container">
+                                <div class="fill" id="pbVahan" style="width: 0%"></div>
+                            </div>
+                            <span id="valVahan" class="hud-score-val">0%</span>
+                        </div>
+                        <div class="hud-score-item">
+                            <span class="hud-score-lbl">ECU Consistency (10%)</span>
+                            <div class="hud-progress-container">
+                                <div class="fill" id="pbEcu" style="width: 0%"></div>
+                            </div>
+                            <span id="valEcu" class="hud-score-val">0%</span>
+                        </div>
+                        <div class="hud-score-item">
+                            <span class="hud-score-lbl">XGBoost Classifier (40%)</span>
+                            <div class="hud-progress-container">
+                                <div class="fill" id="pbXg" style="width: 0%"></div>
+                            </div>
+                            <span id="valXg" class="hud-score-val">0%</span>
+                        </div>
+                        <div class="hud-score-item">
+                            <span class="hud-score-lbl">Wear CNN (20%)</span>
+                            <div class="hud-progress-container">
+                                <div class="fill" id="pbWear" style="width: 0%"></div>
+                            </div>
+                            <span id="valWear" class="hud-score-val">0%</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Run New Audit Button -->
+                    <button id="newAuditBtn" class="cyber-btn" style="margin-top: 1.5rem; border-radius: 8px;">
+                        <span class="btn-bg"></span>
+                        <span class="btn-text">RUN NEW AUDIT</span>
+                    </button>
+                </div>
+
+                <!-- 2x2 Results Grid Layout -->
+                <div class="results-grid-layout">
+                    <!-- Card 1: Overview & Anomalies -->
+                    <div class="tilt-card results-grid-card" id="tabOverview">
+                        <div class="card-glow"></div>
+                        <h3 class="grid-card-title">Overview & Anomalies</h3>
+                        <div class="grid-card-content">
+                            <h4 style="font-family: var(--font-cyber); font-size: 0.8rem; color: #fff; margin-bottom: 0.5rem; text-transform: uppercase;">Chronological Registration Logs</h4>
+                            <div class="hud-chart-box" style="height: 180px;">
+                                <canvas id="timelineChart"></canvas>
+                            </div>
+                            <h4 style="font-family: var(--font-cyber); font-size: 0.8rem; color: #fff; margin: 1rem 0 0.5rem 0; text-transform: uppercase;">Safety Violation Warnings</h4>
+                            <div class="violations-flex" id="anomaliesContainer">
+                                <!-- Populated dynamically -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 2: ECU Registers -->
+                    <div class="tilt-card results-grid-card" id="tabEcu">
+                        <div class="card-glow"></div>
+                        <h3 class="grid-card-title">ECU Registers</h3>
+                        <div class="grid-card-content">
+                            <p class="desc-hud">Independent electronic modules cross-checked against cluster record.</p>
+                            <div class="hud-chart-box" style="height: 160px; margin-bottom: 1rem;">
+                                <canvas id="ecuChart"></canvas>
+                            </div>
+                            <h4 style="font-family: var(--font-cyber); font-size: 0.8rem; color: #fff; margin-bottom: 0.5rem; text-transform: uppercase;">Module Register Readouts</h4>
+                            <div style="overflow-x: auto;">
+                                <table class="cyber-table">
+                                    <thead>
+                                        <tr>
+                                            <th>CAN Register</th>
+                                            <th>Logged Mileage</th>
+                                            <th>Deviation</th>
+                                            <th>Sync Integrity</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="ecuTableBody">
+                                        <!-- Populated dynamically -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 3: Optical Wear CNN -->
+                    <div class="tilt-card results-grid-card" id="tabWear">
+                        <div class="card-glow"></div>
+                        <h3 class="grid-card-title">Optical Wear CNN</h3>
+                        <div class="grid-card-content">
+                            <p class="desc-hud">PyTorch CNN surface wear classification (LOW, MEDIUM, HIGH) compared against expectations.</p>
+                            <div class="wear-grid-hud" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 0.5rem; margin-bottom: 1rem;">
+                                <div class="wear-panel-card" style="padding: 0.75rem;">
+                                    <span class="panel-header-sub" style="font-size: 0.65rem;">Pedals Wear</span>
+                                    <div class="wear-badge-hud" id="wearPedalBadge" style="font-size: 0.65rem; padding: 0.2rem;">LOW WEAR</div>
+                                    <p class="score-line-hud" style="font-size: 0.65rem;">Index: <span id="wearPedalScore">0.0</span></p>
+                                </div>
+                                <div class="wear-panel-card" style="padding: 0.75rem;">
+                                    <span class="panel-header-sub" style="font-size: 0.65rem;">Steering Wheel</span>
+                                    <div class="wear-badge-hud" id="wearSteeringBadge" style="font-size: 0.65rem; padding: 0.2rem;">LOW WEAR</div>
+                                    <p class="score-line-hud" style="font-size: 0.65rem;">Index: <span id="wearSteeringScore">0.0</span></p>
+                                </div>
+                                <div class="wear-panel-card" style="padding: 0.75rem;">
+                                    <span class="panel-header-sub" style="font-size: 0.65rem;">Seats Bolsters</span>
+                                    <div class="wear-badge-hud" id="wearSeatBadge" style="font-size: 0.65rem; padding: 0.2rem;">LOW WEAR</div>
+                                    <p class="score-line-hud" style="font-size: 0.65rem;">Index: <span id="wearSeatScore">0.0</span></p>
+                                </div>
+                            </div>
+                            <!-- Wear-Odometer Mismatch Warning -->
+                            <div id="wearMismatchAlert" class="cyber-alert warning-gradient hidden" style="padding: 0.75rem; border-radius: 8px; font-size: 0.75rem;">
+                                <div class="alert-icon" style="font-size: 1rem;">⚠️</div>
+                                <div class="alert-text-content">
+                                    <strong>Wear-Odometer Mismatch Warning:</strong>
+                                    <p id="wearMismatchText" style="margin: 0; font-size: 0.7rem;"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 4: Forensic Report -->
+                    <div class="tilt-card results-grid-card" id="tabReport">
+                        <div class="card-glow"></div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(0, 229, 255, 0.1); padding-bottom: 0.5rem; margin-bottom: 0.5rem;">
+                            <h3 class="grid-card-title" style="border: none; margin: 0; padding: 0;">Forensic Report</h3>
+                            <button id="downloadReportBtn" class="cyber-btn" style="margin: 0; width: auto; padding: 0.4rem 0.8rem; font-size: 0.7rem; display: flex; align-items: center; gap: 0.3rem; border-radius: 6px;">
+                                <span class="btn-bg" style="background: linear-gradient(135deg, rgba(0, 229, 255, 0.15), rgba(157, 78, 221, 0.15)); border-radius: 6px;"></span>
+                                <span class="btn-text">DOWNLOAD PDF</span>
+                            </button>
+                        </div>
+                        <div class="grid-card-content">
+                            <div class="audit-report-container" id="reportTextContainer" style="font-size: 0.8rem;">
+                                <!-- Injected dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- UI/UX Logic -->
+    <script src="app.js"></script>
+</body>
+</html>

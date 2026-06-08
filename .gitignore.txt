@@ -1,0 +1,20 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+.pytest_cache/
+
+# Node packages
+node_modules/
+npm-debug.log*
+
+# Databases and Local Uploads
+*.db
+backend/static/uploads/*
+!backend/static/uploads/.gitkeep
+
+# Environment variables
+.env
+.env.local
